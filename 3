@@ -1,0 +1,99 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace tärningsspel3
+{
+    //Det här programmet visar hur man med högst sannoilikhet får 30 poäng eller över. 
+    //Tre metoder har gjorts i tre olika projekt. Denna projektet visar en metod,
+    //denna metoden är att spara bara alla 6:or om inte finns: Spara högsta värdet. 
+    //Summan i slutet av koden visar dig hur många som blev 30 och över. 
+
+    class Program
+    {
+        static Random random;
+        static int over30 = 0;
+        static void Main(string[] args)
+        {
+            random = new Random();                  //Ny lista dices
+            List<int> Dices = new List<int>();
+            for (int a = 0; a < 10000; a++)            // Gör applikationen så många gånger. 
+                                                    // (Antal rundor som skall göras).
+            {
+                Dices.Clear();                      // rensa dices
+
+                for (int i = 0; i < 6; i++)         // För 6 olika tärningar..:
+                {
+                    Dices.Add(random.Next(1, 7));   //randomisera 6 tärningar:
+                }
+                //Console.WriteLine("Osorterad lista");
+                Dices.Sort();       // Sortera
+                Dices.Reverse(); //omvänd sortering
+               // printList(Dices);
+
+
+                int r = method3(Dices);                // Gör om metod till dices
+                Console.WriteLine(r);                   //Om summan 30 eller mer..:
+                if (r >= 30)
+                {
+                    over30++;                           // Lägg ihop alla summor som är >=30
+                }
+
+
+            }
+            Console.WriteLine(over30);
+            Console.ReadLine();
+        }
+
+
+        // Lägg till alla 6:or
+        public static int method3(List<int> dices)
+        {
+            List<int> collectedDices = new List<int>();
+            while (dices.Count > 0)
+            {
+                if (dices[0]==6 )
+                {
+                    foreach(int d in dices.ToList())
+                    {
+                        if (d == 6)
+                        {
+                            collectedDices.Add(d);
+                            dices.RemoveAt(0);
+                        }
+                    }
+                }
+
+                // Om det inte finns: LÄgg till högsta våädet
+                else
+                {
+                    collectedDices.Add(dices[0]);          //LÄgg till i lista med klara tärningar.
+                    dices.RemoveAt(0);                     //Ta bort klara tärningar från dices.
+                }
+              //  Console.WriteLine("Lista med slagna tärningar");
+               // printList(dices);
+              //  Console.WriteLine("Klara tärningar");
+
+                //printList(collectedDices);
+
+                // Börja om
+                for (int i = 0; i < dices.Count; i++)
+                {
+                    dices[i] = random.Next(1, 7);
+
+                }
+
+                dices.Sort();
+                dices.Reverse();
+            }
+
+            return collectedDices.Sum();
+
+
+        }
+
+
+    }
+}
