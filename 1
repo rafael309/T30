@@ -1,0 +1,88 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp1
+{
+    class Program
+
+    //Det här programmet visar hur man med högst sannoilikhet får 30 poäng eller över. 
+    //Tre metoder har gjorts i tre olika projekt. Denna projektet visar en metod,
+    //denna metoden är att spara högsta tärningen.
+    //Summan i slutet av koden visar dig hur många som blev 30 och över. 
+
+    {
+        static Random random;
+        static int over30 = 0;
+        static void Main(string[] args)
+        {
+            random = new Random();
+            List<int> Dices = new List<int>();            // Ny lista dices
+            for (int a = 0; a < 10000; a++)               // Gör applikationen så många gånger. // (Antal rundor som skall göras).
+            {
+                                                         
+                  
+                Dices.Clear();                         // Rensa dices
+
+                for (int i = 0; i < 6; i++)                 // för 6 olika tärningar..:
+                {
+                    Dices.Add(random.Next(1, 7));           // Randomiser 6 tärningar
+                }
+                //Console.WriteLine("Osorterad lista");
+                Dices.Sort();       // Sortera
+                Dices.Reverse(); //omvänd sortering
+                //printList(Dices);
+
+                
+                int r = method1(Dices);                // Gör om metod till dices
+                Console.WriteLine(r);                  // Om summan 30 eller mer..:
+                if (r >= 30)
+                {
+                    over30++;                           // Lägg ihop alla summor som är >=30
+                }
+
+
+            }
+            Console.WriteLine(over30);
+            Console.ReadLine();
+        }
+
+        
+        // Lägg till alla Högsta Tärningen
+        public static int method1(List<int> dices)
+        {
+            List<int> collectedDices = new List<int>();
+            while (dices.Count > 0)
+            {
+                
+                {
+                    collectedDices.Add(dices[0]);
+
+                    dices.RemoveAt(0);
+                }
+                 //Console.WriteLine("Lista med slagna tärningar");
+                 //printList(dices);
+                // Console.WriteLine("Klara tärningar");
+
+                 //printList(collectedDices);
+
+                // Börja om
+                for (int i = 0; i < dices.Count; i++)
+                {
+                    dices[i] = random.Next(1, 7);
+
+                }
+
+                dices.Sort();
+                dices.Reverse();
+            }
+
+            return collectedDices.Sum();
+
+          
+        }
+       
+    }
+}
