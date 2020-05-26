@@ -1,0 +1,171 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using Spaceshooter;
+//using System.Linq;
+
+namespace Spaceshooter
+{
+
+    //==========================================================
+    // Player, klass för att skapa ett spelarobjekt. Klassen ska
+    // Hantera spelarens rymdskepp (sprite) och ta emot
+    // tangenttryckingar för att ändra rymdskeppets postion
+    //==========================================================
+
+   
+    class Player : PhysicalObject
+    {
+        int points = 0;
+        public List<Bullet> Bullets { get { return bullets; } }
+        List<Bullet> bullets; //alla skott
+        Texture2D bulletTexture; // skottets bild
+        double timeSinceLastBullet = 0; //I millisekunder
+
+        //===================================================
+        // Player(), konstruktor för att skapa spelar-objekt
+        //===================================================
+        public Player(Texture2D texture, float X, float Y,
+                      float speedX, float speedY, Texture2D bulletTexture)
+                   : base(texture, X, Y, speedX, speedY)
+        {
+            bullets = new List<Bullet>();
+            this.bulletTexture = bulletTexture;
+        }
+
+
+        //======================================================
+        // update (), Tar emot tangenttryckingar och uppdaterar
+        // spelarens postition
+        //======================================================
+        public void Update(GameWindow window, GameTime gameTime)
+        {
+            // Läs in tangettryckingar
+            KeyboardState keyboardState = Keyboard.GetState();
+            if (keyboardState.IsKeyDown(Keys.Escape))
+                isAlive = false;
+
+            // Flytta rymdskeppet efter tangenttryckingar (om det
+            //inte är på vög ut från kanten)
+
+
+            if (vector.X <= window.ClientBounds.Width - texture.Width
+                && vector.X >= 0)
+            {
+                if (keyboardState.IsKeyDown(Keys.Right))
+                    vector.X += speed.X;
+                if (keyboardState.IsKeyDown(Keys.Left))
+                    vector.X -= speed.X;
+            }
+
+            if (vector.Y <= window.ClientBounds.Height - texture.Height && vector.Y >= 0)
+            {
+                if (keyboardState.IsKeyDown(Keys.Down))
+                    vector.Y += speed.Y;
+                if (keyboardState.IsKeyDown(Keys.Up))
+                    vector.Y -= speed.Y;
+            }
+
+            //kontrollera ifall rymdskeppet har åkt ut från
+            //kanten, om det har det, så återställ dess position
+            //Har det åkt ut till vänster:
+            if (vector.X < 0)
+                vector.X = 0;
+            //har det åk ut till höger:
+            if (vector.X > window.ClientBounds.Width - texture.Width)
+                vector.X = window.ClientBounds.Width - texture.Width;
+
+
+            // Har det åkt uptill
+            if (vector.Y < 0)
+                vector.Y = 0;
+            // har det åkt nedtill
+            if (vector.Y > window.ClientBounds.Height - texture.Height)
+                vector.Y = window.ClientBounds.Height - texture.Height;
+
+            //spelaren vill skjuta 
+            if (keyboardState.IsKeyDown(Keys.Space))
+            {
+                //kontrollera om spelaren får skjuta 
+                if (gameTime.TotalGameTime.TotalMilliseconds >
+                    timeSinceLastBullet + 200)
+                {
+                    //skapa skottet 
+                    Bullet temp = new Bullet(bulletTexture, vector.X +
+                                        texture.Width / 2,
+                                        vector.Y);
+                    bullets.Add(temp); // lägg tilll skottet it listan 
+                                       // Sätt timeSinceLastBullet till detta ögonblicket 
+                    timeSinceLastBullet = gameTime.TotalGameTime.TotalMilliseconds;
+                }
+            }
+            //flytta på alla skott
+            foreach (Bullet b in bullets.ToList())
+            {
+                //flytta på skottet:
+                b.Update();
+                //kontrollera att skottet imtre är dött
+                if (!b.IsAlive)
+                    bullets.Remove(b); //ta bort skottet ur listan
+            }
+        }
+
+
+        //draw
+        public override void Draw(SpriteBatch spriteBatch)
+        {
+
+
+            spriteBatch.Draw(texture, vector, Color.White);
+            foreach (Bullet b in bullets)
+                b.Draw(spriteBatch);
+
+
+        }
+
+        public void Reset(float X, float Y, float speedX, float speedY)
+        {
+            //återställ spelarens position och hastighet
+            vector.X = X;
+            vector.Y = Y;
+            speed.X = speedX;
+            speed.Y = speedY;
+            //återställ alla skott
+            bullets.Clear();
+            timeSinceLastBullet = 0;
+            //
+            points = 0;
+            // Så att spelaren lever igen 
+            isAlive = true;
+        }
+        public int Points
+        {
+            get { return points; }
+            set { points = value; }
+        }
+       // public List<Bullet>  Bullets { get { return bullets; } }
+    }
+
+      
+    class Bullet : PhysicalObject
+    {
+        // Bullet, en klass r att skapa skott
+        public Bullet(Texture2D texture, float X, float Y)
+            : base(texture, X, Y, 0, 3f)
+            {
+            }
+        // updatde() Uppdaterar skottets poitionoch tar bort det om 
+        // det åker utanför fönstret
+        public void Update()
+        {
+            vector.Y -= speed.Y;
+            if (vector.Y < 0)
+            isAlive = false;
+        }
+    }
+}
