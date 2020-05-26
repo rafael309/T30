@@ -1,0 +1,142 @@
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework.Media;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Spaceshooter
+{   //menuitem, container-klass för ett nytt meny val
+    
+    class Menu
+    {
+        List<MenuItem> menu; //första på menuItems
+        int selected = 0; //första valet i listan är valt
+        //currenHeight anv'nds för att rita ut menyItmes på olika höjd
+        float currentHeight = 0;
+        //lastchange för att pausa tangenttryckningar, så
+        //att det inte ska gå för fort att bläddra ibland menyvalen:
+        double lastChange = 0;
+        //det state som representerar själva menyn:
+        int defaultMenuState;
+
+        //Menu(),konstruktor som skapar listan med MenuItem:s
+        public Menu(int defaultMenuState)
+        {
+            menu = new List<MenuItem>();
+            this.defaultMenuState = defaultMenuState;
+        }
+        //add item(), lägger till menyval i listan
+        public void AddItem(Texture2D itemTexture,int state)
+        {
+                //Sätt höjd på item:
+            float X = 20;
+            float Y = 20 + currentHeight;
+
+            // ändra currentHeight efter detta items höjd + 20 pixlar för
+            //lite extra mellanrum
+            currentHeight += itemTexture.Height + 20;
+                // Skapa ett temporärt objekt och lägg det i listan:
+            MenuItem temp = new MenuItem(itemTexture, new Vector2(X, Y),
+                                          state);
+            menu.Add(temp);
+
+
+        }
+        
+        //Update, kollar om användareb tryckt nån tangent.
+        //Antingen kan pil-
+        //tangenterna användas för att välja en viss menuItem(utan
+        //att gå in i just de valet) eller så kan ENTER användas för 
+        //att gå in i den valda MenuItem:en
+        public int Update(GameTime gameTime)
+        {
+                //Läs in tangentuttryckningar:
+            KeyboardState keyboardState = Keyboard.GetState();
+
+            //Byte mellan olika menyval. Först måste vi dock kontrollera
+            //så att användaren inte precis nyligen bytte menyval. Vi vill
+            //ju inte att det ska ändras 30 eller 60 gånger per sekund!
+            if (lastChange + 130 <
+                gameTime.TotalGameTime.TotalMilliseconds)
+            {
+                //Gå ett steg ned i menyn 
+                if (keyboardState.IsKeyDown(Keys.Down))
+                {
+                    selected++;
+                    //Om vi har gått utanför de möjliga valen, så vill vi
+                    //att det första menyvalet ska väljas:
+                    if (selected > menu.Count - 1)
+                        selected = 0; //det första menyvalet 
+                }
+                if (keyboardState.IsKeyDown(Keys.Up))
+                {
+                    selected--;
+                    //Om vi har gått utanför de möjliga valen (alltstå
+                    //egativa siffror), så vill vi att det sista
+                    //& menyvalet ska väljas:
+                    if (selected < 0)
+                        selected = menu.Count - 1; //de susta menyvalet
+
+                }
+
+                //ställ lastchange till exakt detta ögonblicket:
+                lastChange = gameTime.TotalGameTime.TotalMilliseconds;
+            }
+            //välj ett menyVAL MED ENTER
+            if (keyboardState.IsKeyDown(Keys.Enter))
+               return menu[selected].State; //returnera menyvalets state
+                    //Om inget menyval har valts, så stannar vi kvar i menyn:
+            return defaultMenuState;
+        
+        }
+        //draw(), ritar ut menyn 
+        public void Draw (SpriteBatch spriteBatch)
+        {
+            for (int i = 0; i < menu.Count; i++)
+            {
+                //om vi har ett aktivt menyval ritar vi ut det med en 
+                //speciell färgtoning:
+                if (i == selected)
+                    spriteBatch.Draw(menu[i].Texture, menu[i].Position,
+                                                        Color.RosyBrown);
+                else //annars ingen färgtoning alls
+                    spriteBatch.Draw(menu[i].Texture, menu[i].Position,
+                                      Color.White);
+            }
+        }
+    }
+
+    class MenuItem
+    {
+        Texture2D texture; //bilden för menyval
+        Vector2 position; //positionen för menyvalet
+        int currentState; //menyvalets state
+
+        /// <summary>
+        /// MenuItem(), konsturktorn som skapar ett nytt objekt 
+        /// </summary>
+        
+        //MenuItem(),konstruktor som sätter värden för olika
+        //menyvalen
+        public MenuItem(Texture2D texture, Vector2 position,
+                    int currentState)
+        {
+            this.texture = texture;
+            this.position = position;
+            this.currentState = currentState;
+        }
+
+        // get() egenskaper för MenuItem
+        public Texture2D Texture { get { return texture; } }
+        public Vector2 Position { get { return position; } }
+        public int State { get { return currentState; } }
+
+    }
+
+}
+
