@@ -1,0 +1,367 @@
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+//FEL PÅ SIDA 115
+namespace Spaceshooter
+{
+    static class GameElements
+    {
+        static Texture2D menuSprite;
+        static Vector2 menuPos;
+        static Player player;
+        static List<Enemy> enemies;
+        static List<GoldCoin> goldCoins;
+        static Texture2D goldCoinSprite;
+        static SpriteFont Arial32;
+        static Menu menu;
+        static Background background;
+        static List<Diamond> diamonds;
+        static Texture2D diamantSprite;
+        static Texture2D tmpSprite2;
+
+
+
+        // oloika gamestates:
+        public enum State { Menu, Run, Highscore, Quit };
+        public static State currentState;
+
+
+
+        // initliaze(), anropas av game1initalize() då spelet
+        //startar. Här ligger all kod för att initiera objekt ich
+        //skapa dem dock inte laddning av olika filer
+
+
+        public static void Initialize()
+        {
+            goldCoins = new List<GoldCoin>();
+            diamonds = new List<Diamond>();
+        }
+
+        //Loadcontent(), anropar av game1.loadcontent()då spelet 
+        //startar. Här laddas alla objekt/fiker in (bilder ljut,etc)
+        public static void LoadContent(ContentManager content,
+                                       GameWindow window)
+        {
+            menu = new Menu((int)State.Menu);
+            menu.AddItem(content.Load<Texture2D>("start"),
+                            (int)State.Run);
+            menu.AddItem(content.Load<Texture2D>("highscore"),
+                            (int)State.Highscore);
+            menu.AddItem(content.Load<Texture2D>("exit"),
+                             (int)State.Quit);
+
+           menuSprite = content.Load<Texture2D>("menu");
+           menuPos.X = window.ClientBounds.Height / 2 -
+                       menuSprite.Width / 2;
+           menuPos.Y = window.ClientBounds.Height / 2 -
+                       menuSprite.Height / 2;
+           player = new Player(content.Load<Texture2D>
+                                                   ("ship"),
+                                380, 400, 2.5f, 4.5f,
+                                content.Load<Texture2D>
+                                                    ("bullet"));
+
+           background = new Background(content.Load<Texture2D>
+                            ("background"),window);
+
+            //skapa fiender
+            enemies = new List<Enemy>();
+            GenerateEnemies(content, window);
+            Random random = new Random();
+
+            //int newEnemy = random.Next(1, 200);
+            //if (new == 1) // ok, nytt guldmynt ska uppstå
+            //{
+            //    Var guldmyntet ska uppstå
+            //    int rndX = random.Next(0, window.ClientBounds.Width -
+            //        goldCoinSprite.Width);
+            //    int rndY = random.Next(window.ClientBounds.Height -
+            //        goldCoinSprite.Height);
+
+            //    Lägg till myntet i listan:
+            //    enemies.Add(new Enemy(goldCoinSprite, rndX, rndY,
+            //        gameTime));
+            //}
+
+
+
+
+            diamantSprite = content.Load<Texture2D> ("diamant");
+            goldCoinSprite =content.Load<Texture2D>("coin");
+            Arial32 = content.Load<SpriteFont>("fonts/Arial32");
+
+        }
+        public static State MenuUpdate(GameTime gameTime)
+        {
+            return (State)menu.Update(gameTime);
+        }
+
+        public static void MenuDraw(SpriteBatch spriteBatch)
+        {
+            background.Draw(spriteBatch);
+           // spriteBatch.Draw(menuSprite, menuPos, Color.White);
+            menu.Draw(spriteBatch);
+        }
+
+
+
+        public static State RunUpdate(ContentManager content,
+                                      GameWindow window,
+                                      GameTime gameTime)
+        {
+            background.Update(window);
+
+            // Uppdatera spelarens position:
+            player.Update(window, gameTime);
+            // gå igenom alla fiender
+            foreach (Enemy e in enemies.ToList())
+            {
+                //kontrollera om fienden kolliderar med ett skott
+                foreach (Bullet b in player.Bullets)
+                {
+                    if (e.CheckCollision(b)) // kollision uppstod
+                    {
+                        e.IsAlive = false; //döda fienden
+                        player.Points++; //ge spelaren poäng   
+                        b.IsAlive = false;
+                    }
+                }
+
+                if (e.IsAlive) // kontrollera om fienden lever 
+                {
+                    //kontrollera kollision med spelaren:
+                    if (e.CheckCollision(player))
+                        player.IsAlive = false;
+                    e.Update(window); //flytta på dem 
+                }
+                else // Ta bort fienden för den är död 
+                    enemies.Remove(e);
+
+            }
+
+            Random randomM = new Random();
+            int newenemyM = randomM.Next(1, 50);
+            if (newenemyM == 1) //Ny fiende ska uupstå
+            {
+                tmpSprite2 = content.Load<Texture2D>("mine");
+                int rndx = randomM.Next(0, window.ClientBounds.Width - tmpSprite2.Width);
+                int rndy = 0;
+                enemies.Add(new Mine(tmpSprite2, rndx, rndy));
+            }
+
+
+            Random randomT = new Random();
+            int newenemyT = randomT.Next(1, 50);
+            if (newenemyT == 1) //Ny fiende ska uupstå
+            {
+                tmpSprite2 = content.Load<Texture2D>("tripod");
+                int rndx = randomT.Next(0, window.ClientBounds.Width - tmpSprite2.Width);
+                int rndy = 0;
+                enemies.Add(new Tripod (tmpSprite2,rndx,rndy));
+            }
+
+            Random randomS = new Random();
+            int newenemyS = randomM.Next(1, 50);
+            if (newenemyS == 1) //Ny fiende ska uupstå
+            {
+                tmpSprite2 = content.Load<Texture2D>("stone");
+                int rndx = randomM.Next(0, window.ClientBounds.Width - tmpSprite2.Width);
+                int rndy = 0;
+                enemies.Add(new Stone(tmpSprite2, rndx, rndy));
+            }
+
+
+
+            Random random = new Random();
+            int newCoin = random.Next(1, 100);
+            if (newCoin == 1) // ok, nytt guldmynt ska uppstå
+            {
+                //Var guldmyntet ska uppstå 
+                int rndX = random.Next(0, window.ClientBounds.Width -
+                    goldCoinSprite.Width);
+                int rndY = random.Next(window.ClientBounds.Height -
+                    goldCoinSprite.Height);
+
+                //Lägg till myntet i listan:
+                goldCoins.Add(new GoldCoin(goldCoinSprite, rndX, rndY,
+                    gameTime));
+            }
+            
+
+          
+            int newDiamant = random.Next(1,50);
+            if (newDiamant == 1) // ok, nytt guldmynt ska uppstå
+            {
+                //Var guldmyntet ska uppstå 
+                int rndX = random.Next(0, window.ClientBounds.Width -
+                    goldCoinSprite.Width);
+                int rndY = random.Next(window.ClientBounds.Height -
+                    goldCoinSprite.Height);
+
+                //Lägg till myntet i listan:
+                diamonds.Add(new Diamond(diamantSprite, rndX, rndY,
+                    gameTime));
+            }
+
+
+            //Gå igenom hela listam med existerande guldmynt
+            foreach (GoldCoin gc in goldCoins.ToList())
+
+            {
+                if (gc.IsAlive) //kontrollera om guldmuntet lever
+                {
+                    //gc.Update() kollar om guldmyntet har blivit för gammalt
+                    //För att det ska levca cidare;
+                    gc.Update(gameTime);
+
+                    // KOntrollera om de kolliderat med spelaren:
+                    if (gc.CheckCollision(player))
+                    {
+                        goldCoins.Remove(gc);
+                        player.Points++;
+
+                    }
+
+                }
+                else
+                    goldCoins.Remove(gc);
+            }
+
+            foreach (Diamond d in diamonds.ToList())
+
+            {
+                if (d.IsAlive) //kontrollera om guldmuntet lever
+                {
+                    //gc.Update() kollar om guldmyntet har blivit för gammalt
+                    //För att det ska levca cidare;
+                    d.Update(gameTime);
+
+                    // KOntrollera om de kolliderat med spelaren:
+                    if (d.CheckCollision(player))
+                    {
+                        diamonds.Remove(d);
+                        player.Points++;
+                        player.Points++;
+                        player.Points++;
+                        player.Points++;
+                        player.Points++;
+
+
+                    }
+
+                }
+                else
+                    diamonds.Remove(d);
+            }
+
+
+
+            if (!player.IsAlive) // spelaren är död
+            {
+
+                Reset(window, content); //Återställ alla spelobjekt
+                return State.Menu; // ÅTERGÅ TILL MENyn
+            }
+            return State.Run; // stanna kvar i run 
+
+
+        }
+
+        
+
+        // RunUpdate()update metod för själva spelet 
+        public static void RunDraw(SpriteBatch spriteBatch)
+        {
+            background.Draw(spriteBatch);
+            player.Draw(spriteBatch);
+            foreach (Enemy e in enemies)
+                e.Draw(spriteBatch);
+            foreach (GoldCoin gc in goldCoins)
+                gc.Draw(spriteBatch);
+            spriteBatch.DrawString(Arial32, "points" + player.Points, new Vector2(0,0), Color.White);
+            foreach (Diamond d in diamonds)
+                d.Draw(spriteBatch);
+            spriteBatch.DrawString(Arial32, "points" + player.Points, new Vector2(0, 0), Color.White);
+
+        }
+        //HighscoreUpdatee(),update metod för highscore listan
+
+        public static State HighScoreUpdate()
+        {
+            KeyboardState keyboardState = Keyboard.GetState();
+            //återgå till menyn om man trycker ESC:
+            if (keyboardState.IsKeyDown(Keys.Escape))
+                return State.Menu;
+            return State.Highscore; // stanna kvar i Highscore
+        }
+
+       
+        private static void GenerateEnemies(ContentManager content,
+            GameWindow window)
+      
+        {
+            
+            Random random = new Random();
+            Texture2D tmpSprite =
+                      content.Load<Texture2D>("mine");
+            for (int i = 0; i < 5; i++)
+            {
+                int rndX = random.Next(0, window.ClientBounds.Width -
+                    tmpSprite.Width);
+                int rndY = random.Next(0, window.ClientBounds.Height / 2);
+                Mine temp = new Mine(tmpSprite, rndX, rndY);
+                enemies.Add(temp); // Lägg till i listan 
+            }
+            tmpSprite = content.Load<Texture2D>("tripod");
+            for (int i = 0; i <5; i++)
+            {
+                int rndX = random.Next(0, window.ClientBounds.Width -
+                   tmpSprite.Width);
+                int rndY = random.Next(0, window.ClientBounds.Height / 2);
+                Tripod temp = new Tripod(tmpSprite, rndX, rndY);
+                enemies.Add(temp); //läg till i listan
+
+            }
+
+            tmpSprite = content.Load<Texture2D>("stone");
+            for (int i = 0; i < 5; i++)
+            {
+                int rndX = random.Next(0, window.ClientBounds.Width -
+                   tmpSprite.Width);
+                int rndY = random.Next(0, window.ClientBounds.Height / 2);
+                Stone temp = new Stone(tmpSprite, rndX, rndY);
+                enemies.Add(temp); //läg till i listan
+
+            }
+
+        }
+
+        private static void Reset(GameWindow window,
+                             ContentManager content)
+        {
+            player.Reset(380, 400, 2.5f, 4.5f);
+            enemies.Clear();
+            GenerateEnemies(content, window);
+
+            goldCoins.Clear();
+
+            
+
+        }
+        //Higscoredraw, ritar ut higscorelistan
+        public static void HighScoreDraw(SpriteBatch spriteBatch)
+        {
+            //kod HIGHSCORE LISTAN
+        }
+
+
+
+    }
+}
