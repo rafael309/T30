@@ -1,0 +1,53 @@
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Spaceshooter
+{
+    class GoldCoin : PhysicalObject
+    {
+        double timeToDie; // HUr länge guldmyntet lever kvar
+        //Goldcoin(), konstruktor för att skapa objektet
+        public GoldCoin(Texture2D texture, float X, float Y,
+                        GameTime gameTime)
+            : base(texture, X, Y, 0, 2f)
+        {
+            timeToDie = gameTime.TotalGameTime.TotalMilliseconds +
+                5000;
+        }
+        //Update 89,kontrollerar om guldmyntet ska få levavidare
+        public void Update (GameTime gameTime)
+        {
+            //döda guldmyntet om det är för gammalt
+            if (timeToDie < gameTime.TotalGameTime.TotalMilliseconds)
+                isAlive = false;
+        }
+
+
+        
+    }
+
+    class Diamond : PhysicalObject
+    {
+        double timeToDie; // HUr länge guldmyntet lever kvar
+        //Goldcoin(), konstruktor för att skapa objektet
+        public Diamond(Texture2D texture, float X, float Y,
+                        GameTime gameTime)
+            : base(texture, X, Y, 0, 2f)
+        {
+            timeToDie = gameTime.TotalGameTime.TotalMilliseconds +
+                5000;
+        }
+        //Update 89,kontrollerar om guldmyntet ska få levavidare
+        public void Update(GameTime gameTime)
+        {
+            //döda guldmyntet om det är för gammalt
+            if (timeToDie < gameTime.TotalGameTime.TotalMilliseconds)
+                isAlive = false;
+        }
+    }
+}
